@@ -18,13 +18,24 @@
 
 ### 1.1 事前準備
 
-* [QGISプラグイン Stereo MPI-RRIM Creatorなど]で左右のGeoTIFFを作成し、left.tif / right.tif として保存
+* [QGISプラグイン Stereo MPI-RRIM Creatorなど](https://github.com/yiwasa/Stereo-MPI-RRIM-Creator)で左右のGeoTIFFを作成し、left.tif / right.tif として保存
 
-* githubのファイル一覧にあるファイル（MacOSの場合は`make_pmtiles_mac.sh` /Windows OSの場合は`make_pmtiles_windows.bat`）を left.tif / right.tif を保存したフォルダにダウンロード
+* githubのファイル一覧にあるファイルをクリックし、右上のダウンロードボタンからダウンロード。保存先は　left.tif / right.tif を保存したフォルダ
+  * MacOSの場合は `make_pmtiles_mac.sh` /Windows OSの場合は `make_pmtiles_windows.bat`をダウンロードしてください。
 
 * PMTilesへの変換
 
-  * macOSの場合：保存したフォルダを右クリックし「新規ターミナルタブでフォルダに移動」を選択 → `chmod +x make_pmtiles_mac.sh` をターミナルにコピペして、エンター　→ `./make_pmtiles_mac.sh` をターミナルにコピペして、エンター
+  * macOSの場合<br>
+  保存したフォルダを右クリックし「新規ターミナルタブでフォルダに移動」を選択<br>
+  以下をターミナルにコピペして、エンター
+    ```text
+    chmod +x make_pmtiles_mac.sh
+    ```
+    以下をターミナルにコピペして、エンター
+    ```text
+    ./make_pmtiles_mac.sh
+    ```
+
   * Windowsの場合：保存した `make_pmtiles_windows.bat` をダブルクリック
   →left.pmtiles / right.pmtiles が生成される
     * モバイル端末で閲覧する場合にはモバイル端末にpmtilesファイルをコピーする
