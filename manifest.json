@@ -1,0 +1,9 @@
+{
+  "name": "Stereo PMTiles Viewer",
+  "short_name": "StereoPMTiles",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "orientation": "landscape"
+}

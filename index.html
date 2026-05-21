@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111111">
+  <title>Stereo PMTiles Viewer</title>
+
+  <link rel="manifest" href="./manifest.json">
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  >
+
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <div id="app">
+    <div id="viewer">
+      <div id="leftMap" class="map"></div>
+      <div id="rightMap" class="map"></div>
+    </div>
+
+    <div id="controls">
+      <div class="row buttons">
+        <label class="button">
+          左PMTiles選択
+          <input id="leftFile" type="file" accept=".pmtiles" hidden>
+        </label>
+
+        <label class="button">
+          右PMTiles選択
+          <input id="rightFile" type="file" accept=".pmtiles" hidden>
+        </label>
+
+        <button id="gpsButton" class="button">GPS開始</button>
+        <button id="resetButton" class="button primary">リセット</button>
+      </div>
+
+      <div class="row">
+        <label class="sliderLabel">視差X</label>
+        <input id="parallaxX" type="range" min="-300" max="5000" step="1" value="0">
+        <span id="parallaxXValue" class="value">0</span>
+      </div>
+
+      <div class="row">
+        <label class="sliderLabel">視差Y</label>
+        <input id="parallaxY" type="range" min="-300" max="300" step="1" value="0">
+        <span id="parallaxYValue" class="value">0</span>
+      </div>
+
+      <div id="status">左・右のPMTilesを選択してください</div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/pmtiles@4.4.1/dist/pmtiles.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
