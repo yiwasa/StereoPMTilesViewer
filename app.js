@@ -81,69 +81,169 @@ async function loadPMTiles(file, side) {
     return;
   }
 
-  setStatus(`${side === "left" ? "左" : "右"}PMTilesを読み込んでいます: ${file.name}`);
+  const sideName = side === "left" ? "左" : "右";
 
-  const source = new pmtiles.FileSource(file);
-  const archive = new pmtiles.PMTiles(source);
-  const header = await archive.getHeader();
+  setStatus(`${sideName}PMTilesを確認しています: ${file.name}`);
 
-  const nativeMinZoom = Number.isFinite(header.minZoom) ? header.minZoom : 0;
-  const nativeMaxZoom = Number.isFinite(header.maxZoom) ? header.maxZoom : 18;
-
-  const displayMaxZoom = 30;
-
-  console.log("PMTiles header", side, header);
-  console.log("nativeMinZoom", nativeMinZoom, "nativeMaxZoom", nativeMaxZoom);
-
-  const layer = pmtiles.leafletRasterLayer(archive, {
-    attribution: "",
-    minZoom: 0,
-    maxZoom: displayMaxZoom,
-    minNativeZoom: nativeMinZoom,
-    maxNativeZoom: nativeMaxZoom,
-    noWrap: true,
-    updateWhenZooming: false,
-    updateWhenIdle: true,
-    keepBuffer: 8
-  });
-
-  if (side === "left") {
-    if (leftLayer) {
-      leftMap.removeLayer(leftLayer);
+  try {
+    // 空ファイルや、明らかに小さすぎるファイルを除外
+    if (file.size === 0) {
+      throw new Error("ファイルの内容が空です");
     }
 
-    leftPMTiles = archive;
-    leftHeader = header;
-    leftLayer = layer.addTo(leftMap);
-
-    leftMap.setMinZoom(0);
-    leftMap.setMaxZoom(displayMaxZoom);
-
-    fitMapToHeader(leftMap, header);
-  } else {
-    if (rightLayer) {
-      rightMap.removeLayer(rightLayer);
+    if (file.size < 127) {
+      throw new Error(
+        "ファイルサイズが小さすぎます。正しいPMTilesファイルではない可能性があります"
+      );
     }
 
-    rightPMTiles = archive;
-    rightHeader = header;
-    rightLayer = layer.addTo(rightMap);
+    const source = new pmtiles.FileSource(file);
+    const archive = new pmtiles.PMTiles(source);
 
-    rightMap.setMinZoom(0);
-    rightMap.setMaxZoom(displayMaxZoom);
+    // 読み込みが完了しない場合に、画面が永久に止まることを防ぐ
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(
+          new Error(
+            "PMTilesのヘッダーを読み込めませんでした。ファイルが壊れているか、対応していない形式の可能性があります"
+          )
+        );
+      }, 15000);
+    });
 
-    if (!leftHeader) {
-      fitMapToHeader(rightMap, header);
+    const header = await Promise.race([
+      archive.getHeader(),
+      timeoutPromise
+    ]);
+
+    console.log("PMTiles header", side, header);
+
+    /*
+      PMTilesのtileType
+      1 = MVT（ベクトル）
+      2 = PNG
+      3 = JPEG
+      4 = WebP
+      5 = AVIF
+    */
+    const rasterTileTypes = [2, 3, 4];
+
+    if (!rasterTileTypes.includes(header.tileType)) {
+      if (header.tileType === 1) {
+        throw new Error(
+          "このファイルはベクトルPMTilesです。このビューアーではラスターPMTilesのみ表示できます"
+        );
+      }
+
+      throw new Error(
+        `タイル形式を判定できませんでした（tileType: ${header.tileType}）`
+      );
     }
+
+    if (
+      !Number.isFinite(header.minZoom) ||
+      !Number.isFinite(header.maxZoom)
+    ) {
+      throw new Error(
+        "PMTiles内のズームレベル情報を読み取れませんでした"
+      );
+    }
+
+    const nativeMinZoom = header.minZoom;
+    const nativeMaxZoom = header.maxZoom;
+    const displayMaxZoom = 30;
+
+    setStatus(`${sideName}PMTilesを読み込んでいます: ${file.name}`);
+
+    const layer = pmtiles.leafletRasterLayer(archive, {
+      attribution: "",
+      minZoom: 0,
+      maxZoom: displayMaxZoom,
+      minNativeZoom: nativeMinZoom,
+      maxNativeZoom: nativeMaxZoom,
+      noWrap: true,
+      updateWhenZooming: false,
+      updateWhenIdle: true,
+      keepBuffer: 8
+    });
+
+    // タイル単位の読込エラーも画面に出す
+    layer.on("tileerror", (event) => {
+      console.error("PMTiles tile error", side, event);
+
+      const message =
+        event && event.error && event.error.message
+          ? event.error.message
+          : "タイルデータを読み込めませんでした";
+
+      setStatus(`${sideName}PMTilesタイル読込エラー: ${message}`);
+    });
+
+    if (side === "left") {
+      if (leftLayer) {
+        leftMap.removeLayer(leftLayer);
+      }
+
+      leftPMTiles = archive;
+      leftHeader = header;
+      leftLayer = layer.addTo(leftMap);
+
+      leftMap.setMinZoom(0);
+      leftMap.setMaxZoom(displayMaxZoom);
+      fitMapToHeader(leftMap, header);
+      leftMap.invalidateSize();
+    } else {
+      if (rightLayer) {
+        rightMap.removeLayer(rightLayer);
+      }
+
+      rightPMTiles = archive;
+      rightHeader = header;
+      rightLayer = layer.addTo(rightMap);
+
+      rightMap.setMinZoom(0);
+      rightMap.setMaxZoom(displayMaxZoom);
+
+      if (!leftHeader) {
+        fitMapToHeader(rightMap, header);
+      }
+
+      rightMap.invalidateSize();
+    }
+
+    if (leftHeader && rightHeader) {
+      syncRightToLeft();
+    }
+
+    const tileTypeNames = {
+      2: "PNG",
+      3: "JPEG",
+      4: "WebP"
+    };
+
+    const tileTypeName =
+      tileTypeNames[header.tileType] || String(header.tileType);
+
+    setStatus(
+      `${sideName}PMTiles読込完了: ${tileTypeName} / native zoom ${nativeMinZoom}-${nativeMaxZoom}`
+    );
+  } catch (error) {
+    console.error("PMTiles load error", side, error);
+
+    const message =
+      error && error.message
+        ? error.message
+        : String(error);
+
+    setStatus(`${sideName}PMTiles読込エラー: ${message}`);
+
+    alert(
+      `${sideName}PMTilesを開けませんでした。\n\n` +
+      `ファイル名: ${file.name}\n` +
+      `ファイルサイズ: ${Math.round(file.size / 1024).toLocaleString()} KB\n\n` +
+      `原因:\n${message}`
+    );
   }
-
-  if (leftHeader && rightHeader) {
-    syncRightToLeft();
-  }
-
-  setStatus(
-    `${side === "left" ? "左" : "右"}PMTiles読込完了: native zoom ${nativeMinZoom}-${nativeMaxZoom} / 表示最大 ${displayMaxZoom}`
-  );
 }
 
 function fitMapToHeader(map, header) {
