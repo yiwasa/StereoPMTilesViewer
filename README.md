@@ -20,8 +20,9 @@
 
 * [QGISプラグイン Stereo MPI-RRIM Creatorなど](https://github.com/yiwasa/Stereo-MPI-RRIM-Creator)で左右のGeoTIFFを作成し、left.tif / right.tif として保存
 
-* githubのファイル一覧にあるファイルをクリックし、右上のダウンロードボタンからダウンロード。保存先は　left.tif / right.tif を保存したフォルダ
+* githubのファイル一覧にあるファイル名をクリックし、右上のダウンロードボタンからダウンロード。保存先は　left.tif / right.tif を保存したフォルダ
   * MacOSの場合は `make_pmtiles_mac.sh` /Windows OSの場合は `make_pmtiles_windows.bat`をダウンロードしてください。
+  * ファイル名を右クリックしてダウンロードする方法ではうまく動作しません。**必ず**ファイル名をクリックし、コードが表示された画面右上のダウンロードボタンからダウンロードしてください。
 
 * PMTilesへの変換
 
