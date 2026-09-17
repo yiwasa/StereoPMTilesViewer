@@ -163,7 +163,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-python -m pip install rasterio rio-pmtiles
+python -m pip install --upgrade rasterio rio-pmtiles pmtiles
 if errorlevel 1 (
     echo.
     echo ERROR: Failed to install rasterio or rio-pmtiles.
@@ -186,7 +186,7 @@ REM Convert left.tif and right.tif
 REM ------------------------------------------------------------
 echo.
 echo [4/5] Converting left.tif to left.pmtiles...
-rio pmtiles "%LEFT_TIF%" "%LEFT_PMTILES%" --format JPEG --resampling bilinear --tile-size 512
+rio pmtiles "%LEFT_TIF%" "%LEFT_PMTILES%" --format JPEG --tile-size 512
 if errorlevel 1 (
     echo.
     echo ERROR: Failed to convert left.tif.
@@ -196,7 +196,7 @@ if errorlevel 1 (
 
 echo.
 echo [5/5] Converting right.tif to right.pmtiles...
-rio pmtiles "%RIGHT_TIF%" "%RIGHT_PMTILES%" --format JPEG --resampling bilinear --tile-size 512
+rio pmtiles "%RIGHT_TIF%" "%RIGHT_PMTILES%" --format JPEG --tile-size 512
 if errorlevel 1 (
     echo.
     echo ERROR: Failed to convert right.tif.
