@@ -67,14 +67,12 @@ if not defined QGIS_ROOT (
 
 if not defined QGIS_ROOT (
     echo.
-    echo ERROR: QGIS or OSGeo4W was not found.
-    echo This script searched these locations:
-    echo   C:\Program Files\QGIS*
-    echo   C:\OSGeo4W
-    echo.
-    echo If QGIS is installed in another folder, edit this BAT file and set QGIS_ROOT manually.
-    echo Example:
-    echo   set "QGIS_ROOT=C:\Program Files\QGIS 3.44.8"
+    echo ============================================================
+    echo エラー: QGIS が見つかりませんでした。
+    echo このツールを実行するには QGIS のインストールが必要です。
+    echo ブラウザでダウンロードページを開きます。
+    echo ============================================================
+    start https://qgis.org/
     pause
     exit /b 1
 )
